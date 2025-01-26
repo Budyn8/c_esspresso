@@ -6,7 +6,65 @@
 #define max(a, b) a > b ? a : b;
 #define min(a, b) a < b ? a : b;
 
-int testOnCr();
+int nCr(int n, int k);
+int* gen_combinations(int* arr, int length, int elem_num);
+char* get_file_contents();
+int max_bit(int* setOf, int length);
+int get_bite_size(int num);
+
+int main(int argc, char** argv){
+
+	int onset[] = { 1,4,5 };
+	int offset[] = { 2,3,7 };
+
+	int off_len = len(offset);
+	int bit_ammount = max(
+		max_bit(onset, len(onset)),
+		max_bit(offset, off_len)
+	);
+
+	int base = bit_ammount;
+
+	int* comb = (int*) malloc(bit_ammount*sizeof(int));
+
+	
+	while (0<bit_ammount--) {
+		comb[bit_ammount]=1<<bit_ammount;
+	}
+
+	int* blokada = (int*) calloc(off_len,sizeof(int));
+
+	for(int i = 0; i<len(onset); i++){
+		for(int j = 0; j<off_len; j++){
+			blokada[j] = offset[j] ^ onset[i];
+		}
+
+		int* tmp;
+		int tmp_len;
+		int anws;
+		for(int j = 1;j<base;j++){
+			tmp = gen_combinations(comb, base, j);
+			tmp_len = nCr(base, j);
+			anws=(1<<(base+1)) - 1;
+
+			for (int k = 0; k < tmp_len; k++) {
+				for (int l = 0; l < off_len;l++) {
+					anws &= blokada[l] && tmp[k];
+				}
+
+				if(anws>0){
+					// add a mask and a prism
+				}
+			}
+			free(tmp);
+		}
+	}
+
+	free(comb);
+	free(blokada);
+
+	return 0;
+}
 
 // max combination that can be compute is (30 13)
 int nCr(int n, int k){
@@ -117,75 +175,3 @@ int* gen_combinations(int* arr, int length, int elem_num){
 
 
 
-int main(int argc, char** argv){
-
-	int onset[] = { 1,4,5 };
-	int offset[] = { 2,3,7,8 };
-
-	int bit_ammount = max(
-		max_bit(onset, len(onset)),
-		max_bit(offset, len(offset))
-	);
-
-	int base = bit_ammount;
-
-	int* comb = (int*) malloc(bit_ammount*sizeof(int));
-
-	
-	while (0<bit_ammount--) {
-		comb[bit_ammount]=1<<bit_ammount;
-	}
-
-	int* blokada = (int*) calloc(len(offset),sizeof(int));
-
-	for(int i = 0; i<len(onset); i++){
-		for(int j = 0; j<len(offset); j++){
-			blokada[j] = offset[j] ^ onset[i];
-		}
-		
-		int* tmp;
-		for(int j = 1;j<base;j++){
-			tmp = gen_combinations(comb, base, j);
-
-			free(tmp);
-		}
-	}
-
-	free(comb);
-	free(blokada);
-
-	return 0;
-}
-
-int testGenComb(){
-
-	int comb[] = {1,2,4,8};
-	int base = 4;
-	int bit_num = 2;
-	
-	int* combs = gen_combinations(comb, base, bit_num);
-	
-	printf("Our combination is: \n");
-	for(int i = 0; i<nCr(base,bit_num);i++){
-		printf("%i ", combs[i]);
-	}
-	printf("\n");
-
-	free(combs);
-	return 0;
-}
-
-int testOnCr(){
-	int i = 1;
-	while(1){
-		for(int j=0;j<=i;j++){
-			int wynik = nCr(i,j);
-			printf("(%i %i): %i\n", i, j, wynik);
-			if(wynik<0){
-				return 0;
-			}
-		}
-		i++;
-	}
-	return 0;
-}
