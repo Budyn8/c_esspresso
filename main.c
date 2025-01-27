@@ -6,6 +6,11 @@
 #define max(a, b) a > b ? a : b;
 #define min(a, b) a < b ? a : b;
 
+typedef struct implikant{
+	int mask;
+	int prism;
+} implikant;
+
 int nCr(int n, int k);
 int* gen_combinations(int* arr, int length, int elem_num);
 char* get_file_contents();
@@ -34,7 +39,9 @@ int main(int argc, char** argv){
 
 	int* blokada = (int*) calloc(off_len,sizeof(int));
 
+	// for each onset
 	for(int i = 0; i<len(onset); i++){
+		// make a block
 		for(int j = 0; j<off_len; j++){
 			blokada[j] = offset[j] ^ onset[i];
 		}
@@ -42,10 +49,14 @@ int main(int argc, char** argv){
 		int* tmp;
 		int tmp_len;
 		int anws;
+		// check and add implicants
 		for(int j = 1;j<base;j++){
 			tmp = gen_combinations(comb, base, j);
 			tmp_len = nCr(base, j);
 			anws=(1<<(base+1)) - 1;
+
+			implikant* implikants = (implikant *) calloc(tmp_len, sizeof(implikant));
+			int impl_index = 0;
 
 			for (int k = 0; k < tmp_len; k++) {
 				for (int l = 0; l < off_len;l++) {
@@ -53,7 +64,10 @@ int main(int argc, char** argv){
 				}
 
 				if(anws>0){
-					// add a mask and a prism
+					implikant tmp_impl;
+					tmp_impl.mask = tmp[k];
+					tmp_impl.prism = onset[i];
+					implikants[impl_index++] = tmp_impl;
 				}
 			}
 			free(tmp);
@@ -64,6 +78,10 @@ int main(int argc, char** argv){
 	free(blokada);
 
 	return 0;
+}
+
+void print_implikants(implikant* a, int length){
+	
 }
 
 // max combination that can be compute is (30 13)
