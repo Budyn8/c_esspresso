@@ -16,6 +16,7 @@ int* gen_combinations(int* arr, int length, int elem_num);
 char* get_file_contents();
 int max_bit(int* setOf, int length);
 int get_bite_size(int num);
+void print_implikants(implikant*, int);
 
 int main(int argc, char** argv){
 
@@ -30,6 +31,7 @@ int main(int argc, char** argv){
 
 	int base = bit_ammount;
 
+	// TODO: Add checking whether or not the all of alloc were succesfull
 	int* comb = (int*) malloc(bit_ammount*sizeof(int));
 
 	
@@ -39,40 +41,73 @@ int main(int argc, char** argv){
 
 	int* blokada = (int*) calloc(off_len,sizeof(int));
 
+	implikant* all_implicants = (implikant *) calloc(1,sizeof(implikant));
+	long curr_imp_size = 0;
+	int curr_imp_index = 0;
+
 	// for each onset
 	for(int i = 0; i<len(onset); i++){
 		// make a block
 		for(int j = 0; j<off_len; j++){
 			blokada[j] = offset[j] ^ onset[i];
 		}
-
+		
 		int* tmp;
 		int tmp_len;
 		int anws;
+		int impl_index;
 		// check and add implicants
 		for(int j = 1;j<base;j++){
+			// this creates all possible combinations for base and j
 			tmp = gen_combinations(comb, base, j);
 			tmp_len = nCr(base, j);
-			anws=(1<<(base+1)) - 1;
 
+			// TODO: Add checking whether or not the alloc was succesfull
 			implikant* implikants = (implikant *) calloc(tmp_len, sizeof(implikant));
-			int impl_index = 0;
+			impl_index = 0;
 
 			for (int k = 0; k < tmp_len; k++) {
+				// We initialize the anws to "and" it with every element of our block
+				anws=(1<<(base+1)) - 1;
+
 				for (int l = 0; l < off_len;l++) {
-					anws &= blokada[l] && tmp[k];
+					anws &= blokada[l] & tmp[k];
 				}
 
 				if(anws>0){
+					// We put a found and valid implikant into our temp array of implikants
 					implikant tmp_impl;
 					tmp_impl.mask = tmp[k];
 					tmp_impl.prism = onset[i];
 					implikants[impl_index++] = tmp_impl;
 				}
 			}
+
+			if(impl_index){
+				// if we found any valid implicants we copy them
+				curr_imp_size+=impl_index;
+
+				// TODO: Add checking whether or not the realloc was succesfull
+				all_implicants = realloc(all_implicants, curr_imp_size*sizeof(implikant));
+
+				while (curr_imp_index<curr_imp_size) {
+					all_implicants[curr_imp_index++]=implikants[--impl_index];
+				}
+
+				free(implikants);
+				free(tmp);
+
+				break;
+			}
+			
+			free(implikants);
 			free(tmp);
 		}
 	}
+
+	print_implikants(all_implicants, curr_imp_size);
+
+	free(all_implicants);
 
 	free(comb);
 	free(blokada);
@@ -81,7 +116,9 @@ int main(int argc, char** argv){
 }
 
 void print_implikants(implikant* a, int length){
-	
+	while (length--) {
+		printf("mask: %i, prism: %i\n", a[length].mask, a[length].prism);
+	}	
 }
 
 // max combination that can be compute is (30 13)
