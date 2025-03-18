@@ -5,6 +5,7 @@
 #define len(arr) sizeof(arr)/sizeof(arr[0])
 #define max(a, b) a > b ? a : b;
 #define min(a, b) a < b ? a : b;
+#define comp_impl(a,b) (a.mask & a.prism) == (b.mask & b.prism)
 
 typedef struct implikant{
 	int mask;
@@ -17,11 +18,12 @@ char* get_file_contents();
 int max_bit(int* setOf, int length);
 int get_bite_size(int num);
 void print_implikants(implikant*, int);
+implikant* distinct_impl(implikant* implicants, int lenght);
 
 int main(int argc, char** argv){
 
-	int onset[] = { 1,4,5 };
-	int offset[] = { 2,3,7 };
+	int onset[] = { 1,7 };
+	int offset[] = { 0,5 };
 
 	int off_len = len(offset);
 	int bit_ammount = max(
@@ -57,25 +59,33 @@ int main(int argc, char** argv){
 		int anws;
 		int impl_index;
 		// check and add implicants
-		for(int j = 1;j<base;j++){
-			// this creates all possible combinations for base and j
+		for(int j = 1;j<=base;j++){
+			// this creates all possible combinations for base and j and puts it into comb
 			tmp = gen_combinations(comb, base, j);
 			tmp_len = nCr(base, j);
 
+			for(int l = 0; l<tmp_len; l++){
+				printf("%i, ", tmp[l]);
+			}
+			printf("\n");
+
 			// TODO: Add checking whether or not the alloc was succesfull
 			implikant* implikants = (implikant *) calloc(tmp_len, sizeof(implikant));
+			if(!implikants){
+				
+			}
 			impl_index = 0;
 
 			for (int k = 0; k < tmp_len; k++) {
-				// We initialize the anws to "and" it with every element of our block
-				anws=(1<<(base+1)) - 1;
+				anws=0;
 
 				for (int l = 0; l < off_len;l++) {
-					anws &= blokada[l] & tmp[k];
+					anws |= blokada[l] & tmp[k];
 				}
 
-				if(anws>0){
-					// We put a found and valid implikant into our temp array of implikants
+				printf("anws = %i\n", anws);
+				
+				if(anws){
 					implikant tmp_impl;
 					tmp_impl.mask = tmp[k];
 					tmp_impl.prism = onset[i];
@@ -83,36 +93,82 @@ int main(int argc, char** argv){
 				}
 			}
 
+			// TODO: Add checking whether or not the realloc was succesfull
 			if(impl_index){
-				// if we found any valid implicants we copy them
 				curr_imp_size+=impl_index;
-
-				// TODO: Add checking whether or not the realloc was succesfull
 				all_implicants = realloc(all_implicants, curr_imp_size*sizeof(implikant));
-
 				while (curr_imp_index<curr_imp_size) {
 					all_implicants[curr_imp_index++]=implikants[--impl_index];
 				}
-
 				free(implikants);
 				free(tmp);
 
 				break;
 			}
-			
+		
 			free(implikants);
 			free(tmp);
 		}
 	}
 
+	printf("There are %li implicants\n", curr_imp_size);
 	print_implikants(all_implicants, curr_imp_size);
 
+	implikant* distinct_impl = malloc(sizeof(implikant) * curr_imp_size);
+	int dist_size = 0;
+
+	for(int i = 0; i < curr_imp_size; i++){
+		int is_not_in = 1;
+		for(int j = 0; j<dist_size; j++){
+			if(comp_impl(distinct_impl[j], all_implicants[i])){
+				is_not_in=0;
+				break;
+			}
+		}
+
+		if(is_not_in) distinct_impl[dist_size++]=all_implicants[i];
+	}
+
+	distinct_impl = realloc(distinct_impl, dist_size);
 	free(all_implicants);
+
+	printf("There are %i distinclt implicants\n", dist_size);
+	print_implikants(distinct_impl, dist_size);
+
+	for(int i = 0; i<len(onset);i++){
+		for(int j = 0; j<dist_size; j++){
+
+		}
+	}
+
+	free(distinct_impl);
 
 	free(comb);
 	free(blokada);
 
 	return 0;
+}
+
+implikant* distinct_impl(implikant* implicants, int lenght){
+	implikant* distinct_impl = malloc(sizeof(implikant) * lenght);
+	int dist_size = 0;
+
+	for(int i = 0; i < lenght; i++){
+		int is_not_in = 1;
+		for(int j = 0; j<dist_size; j++){
+			if(comp_impl(distinct_impl[j], implicants[i])){
+				is_not_in=0;
+				break;
+			}
+		}
+
+		if(is_not_in) distinct_impl[dist_size++]=implicants[i];
+	}
+
+	distinct_impl = realloc(distinct_impl, dist_size);
+	free(implicants);
+	printf("There are %i disctinct implicants\n", dist_size);
+	return distinct_impl;
 }
 
 void print_implikants(implikant* a, int length){

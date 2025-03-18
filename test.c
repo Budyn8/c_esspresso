@@ -1,4 +1,4 @@
-#import "main.c"
+#include "main.c"
 
 int testGenComb(){
 
